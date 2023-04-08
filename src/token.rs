@@ -10,6 +10,9 @@ pub struct Token {
 pub enum TokenType {
     LPAREN, RPAREN, LBRACE, RBRACE, COMMA, DOT, MINUS, PLUS, SEMICOLON, STAR,
 
+    BANG, BANG_EQ, EQ, EQ_EQ, LT, LT_EQ, GT, GT_EQ,
+
+
     EOF
 }
 

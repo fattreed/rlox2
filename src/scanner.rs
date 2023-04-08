@@ -34,6 +34,10 @@ impl<'a> Scanner<'a> {
                 b'+' => self.add_token(TokenType::PLUS),
                 b';' => self.add_token(TokenType::SEMICOLON),
                 b'*' => self.add_token(TokenType::STAR),
+                b'!' => self.operator(TokenType::BANG_EQ, TokenType::BANG),
+                b'=' => self.operator(TokenType::EQ_EQ, TokenType::EQ),
+                b'<' => self.operator(TokenType::LT_EQ, TokenType::LT),
+                b'>' => self.operator(TokenType::GT_EQ, TokenType::GT),
                 _ => { 
                     eprintln!("illegal char")
                 }
@@ -77,6 +81,24 @@ impl<'a> Scanner<'a> {
         self.current += 1;
         self.source[prev]
     }
+
+    fn match_op(&mut self, expected: u8) -> bool {
+        if self.is_at_end() { return false; }
+        if self.source[self.current] != expected { return false; }
+
+        self.current += 1;
+        true
+    }
+    
+    fn operator(&mut self, token_type_1: TokenType, token_type_2: TokenType) {
+        let token_type: TokenType;
+        if self.match_op(b'=') { 
+            token_type = token_type_1 
+        } else {      
+            token_type = token_type_2 
+        }
+        self.add_token(token_type)
+    }
 }
 
 #[test]
@@ -96,6 +118,33 @@ fn single_token() {
     ];
 
     let source = "(){},.-+;*";
+    check_token_types(source, expected);
+}
+
+#[test]
+fn operators() {
+    let expected = vec![
+        TokenType::BANG,
+        TokenType::BANG_EQ,
+        TokenType::EQ,
+        TokenType::EQ_EQ,
+        TokenType::LT,
+        TokenType::LT_EQ,
+        TokenType::GT,
+        TokenType::GT_EQ,
+    ];
+
+    let source = "
+    ! !=
+    = ==
+    < <=
+    > >=
+    ";
+
+    check_token_types(source, expected);
+}
+
+fn check_token_types(source: &str, expected: Vec<TokenType>) {
     let mut scanner = Scanner::new(source);
     let tokens = scanner.scan();
 
