@@ -8,10 +8,11 @@ pub struct Token {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum TokenType {
-    LPAREN, RPAREN, LBRACE, RBRACE, COMMA, DOT, MINUS, PLUS, SEMICOLON, STAR,
+    LPAREN, RPAREN, LBRACE, RBRACE, COMMA, DOT, MINUS, PLUS, SEMICOLON, STAR, SLASH,
 
     BANG, BANG_EQ, EQ, EQ_EQ, LT, LT_EQ, GT, GT_EQ,
 
+    STRING,
 
     EOF
 }

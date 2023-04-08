@@ -38,6 +38,10 @@ impl<'a> Scanner<'a> {
                 b'=' => self.operator(TokenType::EQ_EQ, TokenType::EQ),
                 b'<' => self.operator(TokenType::LT_EQ, TokenType::LT),
                 b'>' => self.operator(TokenType::GT_EQ, TokenType::GT),
+                b'/' => self.slash(), 
+                b' ' | b'\r' | b'\t' => (),
+                b'\n' => self.line += 1,
+                b'"' => self.string(),
                 _ => { 
                     eprintln!("illegal char")
                 }
@@ -99,6 +103,35 @@ impl<'a> Scanner<'a> {
         }
         self.add_token(token_type)
     }
+
+    fn slash(&mut self) {
+        if self.match_op(b'/') {
+            while self.peek() != b'\n' && !self.is_at_end() { self.advance(); }
+        } else {
+            self.add_token(TokenType::SLASH);
+        }
+    }
+
+    fn peek(&self) -> u8 {
+        if self.is_at_end() { return b'\0' }
+        self.source[self.current]
+    }
+
+    fn string(&mut self) {
+        while self.peek() != b'"' && !self.is_at_end() {
+            if self.peek() == b'\n' { self.line += 1 }
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            eprintln!("unterminated string a line: {0:?}", self.line);
+        }
+
+        self.advance();
+
+        let value = self.source[self.start+1..self.current-1].to_vec();
+        self.add_token_literal(TokenType::STRING, Some(Literal::String(String::from_utf8(value).expect("unable to parse string"))));
+    }
 }
 
 #[test]
@@ -132,6 +165,8 @@ fn operators() {
         TokenType::LT_EQ,
         TokenType::GT,
         TokenType::GT_EQ,
+        TokenType::SLASH,
+        TokenType::EOF
     ];
 
     let source = "
@@ -139,9 +174,28 @@ fn operators() {
     = ==
     < <=
     > >=
+    / // a one line comment
     ";
 
     check_token_types(source, expected);
+}
+
+#[test]
+fn strings() {
+    let expected = vec![
+        Token { token_type: TokenType::STRING, lexeme: "this is a test string".to_string(), literal: Literal::String("this is a test string".to_string()), line: 2 },
+        Token { token_type: TokenType::SEMICOLON, lexeme: String::new(), literal: Literal::None, line: 2 },
+        Token { token_type: TokenType::EOF, lexeme: String::new(), literal: Literal::None, line: 3 },
+    ];
+
+    let source = r#"
+    "this is a test string";
+    "#;
+
+    let mut scanner = Scanner::new(source);
+    let tokens = scanner.scan();
+
+    assert_eq!(expected, tokens);
 }
 
 fn check_token_types(source: &str, expected: Vec<TokenType>) {
