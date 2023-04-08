@@ -1,15 +1,13 @@
-use std::{env, fs, io};
+use std::{ env, fs, io, cmp::Ordering };
 use rlox::scanner::Scanner;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    if args.len() > 1 {
-        eprintln!("Usage: rlox [script]")
-    } else if args.len() == 1 {
-        run_file(&args[0]);
-    } else {
-        run_prompt();
+    match args.len().cmp(&1) {
+        Ordering::Greater => eprintln!("Usage: rlox [script]"),
+        Ordering::Equal => run_file(&args[0]),
+        Ordering::Less => run_prompt(),
     }
 }
 

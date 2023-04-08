@@ -70,12 +70,10 @@ impl<'a> Scanner<'a> {
         let text_vec = self.source[self.start..self.current].to_vec();
         let text = String::from_utf8(text_vec).expect("couldn't build string");
 
-        let lit: Literal;
-
-        match literal {
-            Some(l) => lit = l,
-            None => lit = Literal::None,
-        }
+        let lit: Literal = match literal {
+            Some(l) => l,
+            None => Literal::None,
+        };
 
         self.tokens.push(Token {
             lexeme: text,
@@ -103,13 +101,12 @@ impl<'a> Scanner<'a> {
         true
     }
     
-    fn operator(&mut self, token_type_1: TokenType, token_type_2: TokenType) {
-        let token_type: TokenType;
-        if self.match_op(b'=') { 
-            token_type = token_type_1 
+    fn operator(&mut self, t1: TokenType, t2: TokenType) {
+        let token_type: TokenType = if self.match_op(b'=') { 
+            t1 
         } else {      
-            token_type = token_type_2 
-        }
+            t2 
+        };
         self.add_token(token_type)
     }
 
@@ -167,7 +164,7 @@ impl<'a> Scanner<'a> {
 
        let num_vec = self.source[self.start..self.current].to_vec();
        let num_string = String::from_utf8(num_vec);
-       let num = num_string.expect("").parse::<f64>().expect("");
+       let num = num_string.unwrap().parse::<f64>().unwrap();
        self.add_token_literal(TokenType::NUMBER, Some(Literal::Number(num)));
     }
 
@@ -182,7 +179,7 @@ impl<'a> Scanner<'a> {
     fn identifier(&mut self) {
         while self.is_alphanumeric(self.peek()) { self.advance(); }
         let text_vec = &self.source[self.start..self.current];
-        let text = String::from_utf8(text_vec.to_vec()).expect("");
+        let text = String::from_utf8(text_vec.to_vec()).unwrap();
         let keyword_map = self.keywords();
         let token_type = keyword_map.get(&text);
         
