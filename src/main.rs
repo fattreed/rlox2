@@ -19,7 +19,7 @@ fn run_file(path: &str) {
 }
 
 fn run(source: &str) {
-    let mut scanner = Scanner::new(&source);
+    let mut scanner = Scanner::new(source);
     let tokens = scanner.scan();
     for token in tokens {
         println!("{token:?}");

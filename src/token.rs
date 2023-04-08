@@ -6,6 +6,7 @@ pub struct Token {
     pub line: usize,
 }
 
+#[allow(non_camel_case_types)]
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum TokenType {
     LPAREN, RPAREN, LBRACE, RBRACE, COMMA, DOT, MINUS, PLUS, SEMICOLON, STAR, SLASH,

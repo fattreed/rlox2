@@ -1,3 +1,4 @@
+#![allow(dead_code)] //TODO: remove
 use crate::token::{Token, TokenType, Literal};
 use std::collections::HashMap;
 
@@ -10,7 +11,7 @@ pub struct Scanner<'a> {
 }
 
 impl<'a> Scanner<'a> {
-    pub const fn new(source: &'a str) -> Self {
+    #[must_use] pub const fn new(source: &'a str) -> Self {
         Self {
             source: source.as_bytes(),
             start: 0,
@@ -46,9 +47,9 @@ impl<'a> Scanner<'a> {
                 b'"' => self.string(),
                 _ => {
                     if self.is_digit(b) {
-                        self.number()
+                        self.number();
                     } else if self.is_alpha(b) {
-                        self.identifier()
+                        self.identifier();
                     } else {
                         eprintln!("illegal char at {}", self.line);
                     }
@@ -153,7 +154,7 @@ impl<'a> Scanner<'a> {
     }
 
     fn is_digit(&self, b: u8) -> bool {
-        b >= b'0' && b <= b'9'
+        b.is_ascii_digit()
     }
 
     fn number(&mut self) {
@@ -171,7 +172,7 @@ impl<'a> Scanner<'a> {
     }
 
     fn is_alpha(&self, b: u8) -> bool {
-        b >= b'a' && b <= b'z' || b >= b'A' && b <= b'Z' || b == b'_'
+        b.is_ascii_lowercase() || b.is_ascii_uppercase() || b == b'_'
     }
 
     fn is_alphanumeric(&self, b: u8) -> bool {
@@ -283,8 +284,8 @@ fn strings() {
 #[test]
 fn numbers() {
     let expected = vec![
-        Token { token_type: TokenType::NUMBER, lexeme: "1234567890".to_string(), literal: Literal::Number(1234567890.0), line: 1 },
-        Token { token_type: TokenType::NUMBER, lexeme: "1245890.0".to_string(), literal: Literal::Number(1245890.0), line: 2 },
+        Token { token_type: TokenType::NUMBER, lexeme: "1234567890".to_string(), literal: Literal::Number(1_234_567_890.0), line: 1 },
+        Token { token_type: TokenType::NUMBER, lexeme: "1245890.0".to_string(), literal: Literal::Number(1_245_890.0), line: 2 },
         Token { token_type: TokenType::NUMBER, lexeme: "10.22".to_string(), literal: Literal::Number(10.22), line: 3 },
         Token { token_type: TokenType::NUMBER, lexeme: "67890".to_string(), literal: Literal::Number(67890.0), line: 4 },
         Token { token_type: TokenType::EOF, lexeme: " ".to_string(), literal: Literal::None, line: 5 },
