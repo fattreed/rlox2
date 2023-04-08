@@ -17,6 +17,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: clippy
-      run: cargo clippy -- -W clippy::pedantic -W clippy::nursery -W clippy::unwrap_used -W clippy::expect_used
+      run: cargo clippy
     - name: Run tests
       run: cargo test --verbose
