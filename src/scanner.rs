@@ -21,6 +21,7 @@ impl<'a> Scanner<'a> {
 
     pub fn scan(&mut self) -> Vec<Token> {
         while !self.is_at_end() {
+            self.start = self.current;
             let b = self.advance();
  
             match b {
@@ -183,9 +184,9 @@ fn operators() {
 #[test]
 fn strings() {
     let expected = vec![
-        Token { token_type: TokenType::STRING, lexeme: "this is a test string".to_string(), literal: Literal::String("this is a test string".to_string()), line: 2 },
-        Token { token_type: TokenType::SEMICOLON, lexeme: String::new(), literal: Literal::None, line: 2 },
-        Token { token_type: TokenType::EOF, lexeme: String::new(), literal: Literal::None, line: 3 },
+        Token { token_type: TokenType::STRING, lexeme: "\"this is a test string\"".to_string(), literal: Literal::String("this is a test string".to_string()), line: 2 },
+        Token { token_type: TokenType::SEMICOLON, lexeme: ";".to_string(), literal: Literal::None, line: 2 },
+        Token { token_type: TokenType::EOF, lexeme: " ".to_string(), literal: Literal::None, line: 3 },
     ];
 
     let source = r#"
