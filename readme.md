@@ -1,1 +1,2 @@
-# first project from [crafting interpreters](https://craftinginterpreters.com) in rust.
+# rlox
+the first project from [crafting interpreters](https://craftinginterpreters.com) written in rust.
