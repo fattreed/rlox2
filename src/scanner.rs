@@ -1,4 +1,5 @@
 use crate::token::{Token, TokenType, Literal};
+use std::collections::HashMap;
 
 pub struct Scanner<'a> {
     source: &'a [u8],
@@ -43,9 +44,15 @@ impl<'a> Scanner<'a> {
                 b' ' | b'\r' | b'\t' => (),
                 b'\n' => self.line += 1,
                 b'"' => self.string(),
-                _ => { 
-                    eprintln!("illegal char")
-                }
+                _ => {
+                    if self.is_digit(b) {
+                        self.number()
+                    } else if self.is_alpha(b) {
+                        self.identifier()
+                    } else {
+                        eprintln!("illegal char at {}", self.line);
+                    }
+                } 
             };
         }
 
@@ -118,6 +125,11 @@ impl<'a> Scanner<'a> {
         self.source[self.current]
     }
 
+    fn peek_next(&self) -> u8 {
+        if self.current + 1 >= self.source.len() { return b'\0' }
+        self.source[self.current+1]
+    }
+
     fn string(&mut self) {
         while self.peek() != b'"' && !self.is_at_end() {
             if self.peek() == b'\n' { self.line += 1 }
@@ -132,6 +144,66 @@ impl<'a> Scanner<'a> {
 
         let value = self.source[self.start+1..self.current-1].to_vec();
         self.add_token_literal(TokenType::STRING, Some(Literal::String(String::from_utf8(value).expect("unable to parse string"))));
+    }
+
+    fn is_digit(&self, b: u8) -> bool {
+        b >= b'0' && b <= b'9'
+    }
+
+    fn number(&mut self) {
+       while self.is_digit(self.peek()) { self.advance(); }
+
+       if self.peek() == b'.' && self.is_digit(self.peek_next()) {
+           self.advance();
+           while self.is_digit(self.peek()) { self.advance(); }
+       }
+
+       let num_vec = self.source[self.start..self.current].to_vec();
+       let num_string = String::from_utf8(num_vec);
+       let num = num_string.expect("").parse::<f64>().expect("");
+       self.add_token_literal(TokenType::NUMBER, Some(Literal::Number(num)));
+    }
+
+    fn is_alpha(&self, b: u8) -> bool {
+        b >= b'a' && b <= b'z' || b >= b'A' && b <= b'Z' || b == b'_'
+    }
+
+    fn is_alphanumeric(&self, b: u8) -> bool {
+        self.is_digit(b) || self.is_alpha(b)
+    }
+
+    fn identifier(&mut self) {
+        while self.is_alphanumeric(self.peek()) { self.advance(); }
+        let text_vec = &self.source[self.start..self.current];
+        let text = String::from_utf8(text_vec.to_vec()).expect("");
+        let keyword_map = self.keywords();
+        let token_type = keyword_map.get(&text);
+        
+        match token_type {
+            Some(t) => self.add_token(t.clone()),
+            _ => self.add_token(TokenType::IDENTIFIER),
+        }
+    }
+
+    fn keywords(&self) -> HashMap<String, TokenType> {
+         HashMap::from([
+            ("and".to_string(), TokenType::AND),
+            ("class".to_string(), TokenType::CLASS),
+            ("else".to_string(), TokenType::ELSE),
+            ("false".to_string(), TokenType::FALSE),
+            ("for".to_string(), TokenType::FOR),
+            ("fun".to_string(), TokenType::FUN),
+            ("if".to_string(), TokenType::IF),
+            ("nil".to_string(), TokenType::NIL),
+            ("or".to_string(), TokenType::OR),
+            ("print".to_string(), TokenType::PRINT),
+            ("return".to_string(), TokenType::RETURN),
+            ("super".to_string(), TokenType::SUPER),
+            ("this".to_string(), TokenType::THIS),
+            ("true".to_string(), TokenType::TRUE),
+            ("var".to_string(), TokenType::VAR),
+            ("while".to_string(), TokenType::WHILE),
+        ])
     }
 }
 
@@ -197,6 +269,48 @@ fn strings() {
     let tokens = scanner.scan();
 
     assert_eq!(expected, tokens);
+}
+
+#[test]
+fn numbers() {
+    let expected = vec![
+        Token { token_type: TokenType::NUMBER, lexeme: "1234567890".to_string(), literal: Literal::Number(1234567890.0), line: 1 },
+        Token { token_type: TokenType::NUMBER, lexeme: "1245890.0".to_string(), literal: Literal::Number(1245890.0), line: 2 },
+        Token { token_type: TokenType::NUMBER, lexeme: "10.22".to_string(), literal: Literal::Number(10.22), line: 3 },
+        Token { token_type: TokenType::NUMBER, lexeme: "67890".to_string(), literal: Literal::Number(67890.0), line: 4 },
+        Token { token_type: TokenType::EOF, lexeme: " ".to_string(), literal: Literal::None, line: 5 },
+    ];    
+
+    let source = "1234567890
+    1245890.0
+    10.22
+    67890
+    ";
+
+    let mut scanner = Scanner::new(source);
+    let tokens = scanner.scan();
+
+    assert_eq!(expected, tokens);
+}
+
+#[test]
+fn identifiers() {
+    let expected = vec![
+        Token { token_type: TokenType::VAR, lexeme: "var".to_string(), literal: Literal::None, line: 1 },
+        Token { token_type: TokenType::IDENTIFIER, lexeme: "number".to_string(), literal: Literal::None, line: 1 },
+        Token { token_type: TokenType::EQ, lexeme: "=".to_string(), literal: Literal::None, line: 1 },
+        Token { token_type: TokenType::NUMBER, lexeme: "4".to_string(), literal: Literal::Number(4.0), line: 1 },
+        Token { token_type: TokenType::SEMICOLON, lexeme: ";".to_string(), literal: Literal::None, line: 1 },
+        Token { token_type: TokenType::EOF, lexeme: " ".to_string(), literal: Literal::None, line: 2 },
+    ];
+
+    let source = "var number = 4;
+    ";
+    let mut scanner = Scanner::new(source);
+    let tokens = scanner.scan();
+
+    assert_eq!(expected, tokens);
+
 }
 
 fn check_token_types(source: &str, expected: Vec<TokenType>) {

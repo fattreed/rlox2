@@ -12,7 +12,12 @@ pub enum TokenType {
 
     BANG, BANG_EQ, EQ, EQ_EQ, LT, LT_EQ, GT, GT_EQ,
 
-    STRING,
+    STRING, NUMBER, 
+
+    IDENTIFIER,
+
+    AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
+    PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,
 
     EOF
 }
