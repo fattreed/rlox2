@@ -1,6 +1,6 @@
 use crate::token::{Token, TokenType, Literal};
 
-struct Scanner<'a> {
+pub struct Scanner<'a> {
     source: &'a [u8],
     start: usize,
     current: usize,
@@ -9,7 +9,7 @@ struct Scanner<'a> {
 }
 
 impl<'a> Scanner<'a> {
-    const fn new(source: &'a str) -> Self {
+    pub const fn new(source: &'a str) -> Self {
         Self {
             source: source.as_bytes(),
             start: 0,
@@ -19,7 +19,7 @@ impl<'a> Scanner<'a> {
         }
     }
 
-    fn scan(&mut self) -> Vec<Token> {
+    pub fn scan(&mut self) -> Vec<Token> {
         while !self.is_at_end() {
             let b = self.advance();
  
@@ -34,7 +34,9 @@ impl<'a> Scanner<'a> {
                 b'+' => self.add_token(TokenType::PLUS),
                 b';' => self.add_token(TokenType::SEMICOLON),
                 b'*' => self.add_token(TokenType::STAR),
-                _ => (),
+                _ => { 
+                    eprintln!("illegal char")
+                }
             };
         }
 
