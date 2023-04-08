@@ -115,6 +115,12 @@ impl<'a> Scanner<'a> {
     fn slash(&mut self) {
         if self.match_op(b'/') {
             while self.peek() != b'\n' && !self.is_at_end() { self.advance(); }
+        } else if self.match_op(b'*') { 
+            while self.peek() != b'*' && self.peek_next() != b'/' || self.is_at_end() {
+                self.advance();
+            }
+            self.advance();
+            self.advance();
         } else {
             self.add_token(TokenType::SLASH);
         }
@@ -248,6 +254,9 @@ fn operators() {
     < <=
     > >=
     / // a one line comment
+    /* this is a comment 
+       that spans 
+       multiple lines */
     ";
 
     check_token_types(source, expected);
