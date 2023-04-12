@@ -1,5 +1,6 @@
 use crate::token::{Token, TokenType, Literal};
 use crate::ast::{Expr};
+use std::{fmt, error::Error};
 
 struct Parser {
     tokens: Vec<Token>,
@@ -14,11 +15,11 @@ impl Parser {
         }
     }
 
-    fn expression(&self) -> Expr {
+    fn expression(&mut self) -> Expr {
         self.equality()
     }
 
-    fn equality(&self) -> Expr {
+    fn equality(&mut self) -> Expr {
         let mut expr = self.comparison();
 
         while self.match_op(vec![TokenType::BANG_EQ, TokenType::EQ_EQ]) {
@@ -30,7 +31,7 @@ impl Parser {
         expr
     }
 
-    fn comparison(&self) -> Expr {
+    fn comparison(&mut self) -> Expr {
         let mut expr = self.term();
 
         while self.match_op(vec![TokenType::GT, TokenType::GT_EQ, TokenType::LT, TokenType::LT_EQ]) {
@@ -42,7 +43,7 @@ impl Parser {
         expr
     }
 
-    fn term(&self) -> Expr {
+    fn term(&mut self) -> Expr {
         let mut expr = self.factor();
 
         while self.match_op(vec![TokenType::MINUS, TokenType::PLUS]) {
@@ -54,7 +55,7 @@ impl Parser {
         expr
     }
 
-    fn factor(&self) -> Expr {
+    fn factor(&mut self) -> Expr {
         let mut expr = self.unary();
 
         while self.match_op(vec![TokenType::SLASH, TokenType::STAR]) {
@@ -66,7 +67,7 @@ impl Parser {
         expr
     }
     
-    fn unary(&self) -> Expr {
+    fn unary(&mut self) -> Expr {
         if self.match_op(vec![TokenType::BANG, TokenType::MINUS]) {
             let op = self.previous();
             let right = self.unary();
@@ -76,7 +77,7 @@ impl Parser {
         self.primary()
     }
 
-    fn primary(&self) -> Expr {
+    fn primary(&mut self) -> Expr {
         if self.match_op(vec![TokenType::FALSE]) { return Expr::Literal(Literal::Bool(false)); }
         if self.match_op(vec![TokenType::TRUE]) { return Expr::Literal(Literal::Bool(true)); }
         if self.match_op(vec![TokenType::NIL]) { return Expr::Literal(Literal::Nil); }
@@ -89,6 +90,12 @@ impl Parser {
             return Expr::Grouping(Box::new(expr));
         }
         self.expression()
+    }
+
+    fn consume(&mut self, token_type: TokenType, message: &str) -> Result<Token, ParseError> {
+        if self.check(token_type) { return Ok(self.advance()); }
+
+        Err(ParseError{ token: self.peek(), message: message.to_string() })
     }
 
     fn match_op(&mut self, token_types: Vec<TokenType>) -> bool {
@@ -120,10 +127,28 @@ impl Parser {
     }
 
     fn peek(&self) -> Token {
-        self.tokens[self.current]
+        self.tokens.iter().nth(self.current).unwrap().clone()
     }
 
     fn previous(&self) -> Token {
-        self.tokens[self.current-1]
+        self.tokens.iter().nth(self.current-1).unwrap().clone()
     }
 }
+
+#[derive(Debug)]
+struct ParseError {
+    token: Token,
+    message: String,
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.token.token_type == TokenType::EOF {
+            write!(f, "{} at end. ", self.message)
+        } else {
+            write!(f, "{} at line {}", self.message, self.token.line)
+        }
+    }
+}
+
+impl Error for ParseError {}
