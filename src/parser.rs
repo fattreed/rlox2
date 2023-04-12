@@ -10,7 +10,7 @@ struct Parser {
 impl Parser {
     #[must_use] const fn new(tokens: Vec<Token>) -> Self {
         Self {
-            tokens: tokens,
+            tokens,
             current: 0,
         }
     }
