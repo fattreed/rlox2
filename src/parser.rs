@@ -127,11 +127,11 @@ impl Parser {
     }
 
     fn peek(&self) -> Token {
-        self.tokens.iter().nth(self.current).unwrap().clone()
+        self.tokens[self.current].clone()
     }
 
     fn previous(&self) -> Token {
-        self.tokens.iter().nth(self.current-1).unwrap().clone()
+        self.tokens[self.current-1].clone()
     }
 }
 
