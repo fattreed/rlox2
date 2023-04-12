@@ -9,5 +9,6 @@ pub enum Expr {
     Grouping(Box<Expr>),
     Literal(Literal),
     Unary(Box<Token>, Box<Expr>),
+    Ternary(Box<Expr>, Box<Expr>, Box<Expr>),
 }
 

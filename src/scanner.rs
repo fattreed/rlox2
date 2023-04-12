@@ -37,6 +37,8 @@ impl<'a> Scanner<'a> {
                 b'+' => self.add_token(TokenType::PLUS),
                 b';' => self.add_token(TokenType::SEMICOLON),
                 b'*' => self.add_token(TokenType::STAR),
+                b'?' => self.add_token(TokenType::QUESTION),
+                b':' => self.add_token(TokenType::COLON),
                 b'!' => self.operator(TokenType::BANG_EQ, TokenType::BANG),
                 b'=' => self.operator(TokenType::EQ_EQ, TokenType::EQ),
                 b'<' => self.operator(TokenType::LT_EQ, TokenType::LT),
@@ -243,6 +245,8 @@ fn operators() {
         TokenType::GT,
         TokenType::GT_EQ,
         TokenType::SLASH,
+        TokenType::QUESTION,
+        TokenType::COLON,
         TokenType::EOF
     ];
 
@@ -255,6 +259,7 @@ fn operators() {
     /* this is a comment 
        that spans 
        multiple lines */
+    ?:
     ";
 
     check_token_types(source, expected);

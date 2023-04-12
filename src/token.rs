@@ -9,9 +9,9 @@ pub struct Token {
 #[allow(non_camel_case_types)]
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum TokenType {
-    LPAREN, RPAREN, LBRACE, RBRACE, COMMA, DOT, MINUS, PLUS, SEMICOLON, STAR, SLASH,
+    LPAREN, RPAREN, LBRACE, RBRACE, COMMA, DOT, MINUS, PLUS, SEMICOLON, STAR, SLASH, COLON,
 
-    BANG, BANG_EQ, EQ, EQ_EQ, LT, LT_EQ, GT, GT_EQ,
+    BANG, BANG_EQ, EQ, EQ_EQ, LT, LT_EQ, GT, GT_EQ, QUESTION,
 
     STRING, NUMBER, 
 
